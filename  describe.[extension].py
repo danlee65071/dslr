@@ -1,7 +1,6 @@
 import sys
 import pandas as pd
 import numpy as np
-import math
 
 
 class Describe():
@@ -38,7 +37,7 @@ class Describe():
                 continue
             mean_val = self.dt[col].sum() / qnty
             print('{:>35.6f}'.format(mean_val), end='')
-        
+
     def __std_print(self):
         for col in self.columns_name:
             len_col = len(self.dt[col].dropna())
@@ -61,19 +60,37 @@ class Describe():
                     min_val = self.dt[col][i]
             print('{:>35.6f}'.format(min_val), end='')
 
-    def __first_percentile_print(self):
+    def __percentile_linintpol(self, rank):
         for col in self.columns_name:
-            len_col = len(self.dt[col].dropna())
+            data = self.dt[col].dropna()
+            len_col = len(data)
             if len_col == 0:
                 print('{:>35s}'.format('NaN'), end='')
                 continue
-            sorted_dt = self.dt[col].sort_values()
-            index = (len_col + 1) * 0.25 - 1
-            if index % 2 != 0:
-                f_percentile = (sorted_dt[math.ceil(index)] + sorted_dt[math.floor(index)]) / 2
+            data = data.sort_values().to_numpy()
+            f_val = np.array([(i - 1) / (len_col - 1) for i in range(1, len_col + 1)])
+            x1 = np.where(f_val <= rank)[0][-1]
+            x2 = np.where(f_val >= rank)[0][0]
+            y1 = data[x1]
+            y2 = data[x2]
+            x1 = f_val[x1]
+            x2 = f_val[x2]
+            if x1 == x2:
+                res = y1
             else:
-                f_percentile = sorted_dt[index]
-            print('{:>35.6f}'.format(f_percentile), end='')
+                res = (rank - x1) * (y2 - y1) / (x2 - x1) + y1
+            print('{:>35.6f}'.format(res), end='')
+
+    def __max_print(self):
+        for col in self.columns_name:
+            data = self.dt[col].dropna()
+            len_col = len(data)
+            if len_col == 0:
+                print('{:>35s}'.format('NaN'), end='')
+                continue
+            data = data.sort_values().to_numpy()
+            max_val = data[-1]
+            print('{:>35.6f}'.format(max_val), end='')
 
     def print_describe(self):
         self.__remove_str_cols()
@@ -89,7 +106,13 @@ class Describe():
             elif param == 'Min':
                 self.__min_print()
             elif param == '25%':
-                self.__first_percentile_print()
+                self.__percentile_linintpol(0.25)
+            elif param == '50%':
+                self.__percentile_linintpol(0.5)
+            elif param == '75%':
+                self.__percentile_linintpol(0.75)
+            elif param == 'Max':
+                self.__max_print()
             print()
 
 
