@@ -3,13 +3,13 @@ import pandas as pd
 import numpy as np
 
 
-class Describe():
+class Describe:
     def __init__(self, dt_name: str):
         self.dt_name = dt_name
         self.dt = pd.read_csv(dt_name)
         self.count = self.dt.shape[0]
         self.columns_name = self.dt.columns
-        self.params = ['Count', 'Mean', 'Std', 'Min', '25%', '50%', '75%', 'Max']
+        self.params = ['Count', 'Mean', 'Std', 'Min', '25%', '50%', '75%', 'Max', '90%']
 
     def __remove_str_cols(self):
         drop_cols = []
@@ -113,6 +113,8 @@ class Describe():
                 self.__percentile_linintpol(0.75)
             elif param == 'Max':
                 self.__max_print()
+            elif param == '90%':
+                self.__percentile_linintpol(0.9)
             print()
 
 
